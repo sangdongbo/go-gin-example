@@ -6,8 +6,8 @@ import (
 )
 
 type Order struct {
-	Model // 假设 Model 里有 ID、CreatedAt、UpdatedAt、DeletedAt
-
+	Model                      // 假设 Model 里有 ID、CreatedAt、UpdatedAt、DeletedAt
+	Id              int        `json:"id"`
 	OrderSn         string     `json:"order_sn" gorm:"type:varchar(50);not null;unique;comment:'订单编号'"`
 	UserId          int        `json:"user_id" gorm:"not null;comment:'用户ID'"`
 	ProductId       int        `json:"product_id" gorm:"not null;comment:'商品ID'"`
@@ -48,6 +48,12 @@ func GetOrders(pageNum int, pageSize int, maps interface{}) ([]Order, error) {
 	return orders, nil
 }
 
+func GetOrderById(id int) (Order, error) {
+	var order Order
+	err := db.Where("id = ?", id).First(&order).Error
+	return order, err
+}
+
 // GetOrdersWithProducts 获取订单和关联的产品信息
 func GetOrdersWithProducts(pageNum int, pageSize int, maps interface{}) ([]Order, error) {
 	var (
@@ -84,4 +90,12 @@ func GetOrderTotal(maps interface{}) (int, error) {
 // AddOrder 添加订单
 func AddOrder(order *Order) error {
 	return db.Create(order).Error
+}
+
+func EditOrder(order *Order) error {
+	return db.Model(&Order{}).Where("id = ?", order.Id).Updates(order).Error
+}
+
+func DeleteOrder(orderSn string) error {
+	return db.Where("order_sn = ?", orderSn).Delete(&Order{}).Error
 }

@@ -4,26 +4,38 @@ import (
 	"github.com/EDDYCJY/go-gin-example/models"
 )
 
-type AddOrderForm struct {
-	OrderSn         string  `json:"order_sn" binding:"required,max=64"`             // 订单编号
-	UserID          int     `json:"user_id" binding:"required"`                     // 下单用户ID
-	ProductID       uint64  `json:"product_id" binding:"required"`                  // 商品ID
-	ProductName     string  `json:"product_name" binding:"required,max=255"`        // 商品名称快照
-	ProductPrice    float64 `json:"product_price" binding:"required"`               // 商品单价快照
-	Quantity        uint    `json:"quantity" binding:"required,min=1"`              // 购买数量，最少1件
-	TotalAmount     float64 `json:"total_amount" binding:"required"`                // 订单总金额
-	DiscountAmount  float64 `json:"discount_amount" binding:"omitempty,min=0"`      // 优惠金额，允许空，最小0
-	PayAmount       float64 `json:"pay_amount" binding:"required"`                  // 实际支付金额
-	OrderStatus     uint8   `json:"order_status" binding:"gte=0,lte=4"`             // 订单状态 0-4
-	PaymentMethod   *uint8  `json:"payment_method" binding:"omitempty,gte=1,lte=3"` // 支付方式，可空
-	PaymentTime     string  `json:"payment_time"`                                   // 支付时间，可空
-	ShippingAddress string  `json:"shipping_address" binding:"omitempty,max=512"`   // 收货地址，可空
-	ShippingTime    string  `json:"shipping_time"`                                  // 发货时间，可空
-	CompletionTime  string  `json:"completion_time"`                                // 完成时间，可空
-	CancelTime      string  `json:"cancel_time"`                                    // 取消时间，可空
+// 公共订单字段结构体
+type BaseOrderForm struct {
+	OrderSn         string  `json:"order_sn" binding:"required,max=64"`
+	UserID          int     `json:"user_id" binding:"required"`
+	ProductID       uint64  `json:"product_id" binding:"required"`
+	ProductName     string  `json:"product_name" binding:"required,max=255"`
+	ProductPrice    float64 `json:"product_price" binding:"required"`
+	Quantity        uint    `json:"quantity" binding:"required,min=1"`
+	TotalAmount     float64 `json:"total_amount" binding:"required"`
+	DiscountAmount  float64 `json:"discount_amount" binding:"omitempty,min=0"`
+	PayAmount       float64 `json:"pay_amount" binding:"required"`
+	OrderStatus     uint8   `json:"order_status" binding:"gte=0,lte=4"`
+	PaymentMethod   *uint8  `json:"payment_method" binding:"omitempty,gte=1,lte=3"`
+	PaymentTime     string  `json:"payment_time"`
+	ShippingAddress string  `json:"shipping_address" binding:"omitempty,max=512"`
+	ShippingTime    string  `json:"shipping_time"`
+	CompletionTime  string  `json:"completion_time"`
+	CancelTime      string  `json:"cancel_time"`
 }
 
+type AddOrderForm struct {
+	BaseOrderForm
+}
+
+type EditOrderForm struct {
+	Id int `json:"id" binding:"required"`
+	BaseOrderForm
+}
+
+// 业务层 Order 对象
 type Order struct {
+	Id              int
 	OrderSn         string
 	UserID          int
 	ProductID       uint64
@@ -40,14 +52,21 @@ type Order struct {
 	ShippingTime    string
 	CompletionTime  string
 	CancelTime      string
+}
 
+// 分页条件单独结构
+type OrderQuery struct {
+	OrderSn  string
 	PageNum  int
 	PageSize int
 }
 
-// ConvertAddOrderFormToOrder 转换 AddOrderForm 到 Order
-func ConvertAddOrderFormToOrder(form AddOrderForm) Order {
-	return Order{
+type OrderDelete struct {
+	OrderSn string `json:"order_sn" binding:"required,max=64"`
+}
+
+func ConvertAddFormToOrder(form AddOrderForm) Order {
+	order := Order{
 		OrderSn:         form.OrderSn,
 		UserID:          form.UserID,
 		ProductID:       form.ProductID,
@@ -65,38 +84,37 @@ func ConvertAddOrderFormToOrder(form AddOrderForm) Order {
 		CompletionTime:  form.CompletionTime,
 		CancelTime:      form.CancelTime,
 	}
+	return order
 }
 
-// GetAll 获取所有订单
-func (t *Order) GetAll() ([]models.Order, error) {
-	var orders = []models.Order{}
-
-	orders, err := models.GetOrdersWithProducts(t.PageNum, t.PageSize, t.getMaps())
-	if err != nil {
-		return nil, err
+// ConvertFormToOrder 将 Add/Edit 表单转换为 Order 实体
+func ConvertEditFormToOrder(form EditOrderForm) Order {
+	order := Order{
+		Id:              form.Id,
+		OrderSn:         form.OrderSn,
+		UserID:          form.UserID,
+		ProductID:       form.ProductID,
+		ProductName:     form.ProductName,
+		ProductPrice:    form.ProductPrice,
+		Quantity:        form.Quantity,
+		TotalAmount:     form.TotalAmount,
+		DiscountAmount:  form.DiscountAmount,
+		PayAmount:       form.PayAmount,
+		OrderStatus:     form.OrderStatus,
+		PaymentMethod:   form.PaymentMethod,
+		PaymentTime:     form.PaymentTime,
+		ShippingAddress: form.ShippingAddress,
+		ShippingTime:    form.ShippingTime,
+		CompletionTime:  form.CompletionTime,
+		CancelTime:      form.CancelTime,
 	}
-
-	return orders, nil
+	return order
 }
 
-// Count 获取订单总数
-func (t *Order) Count() (int, error) {
-	return models.GetOrderTotal(t.getMaps())
-}
-
-func (t *Order) getMaps() map[string]interface{} {
-	maps := make(map[string]interface{})
-
-	if t.OrderSn != "" {
-		maps["order_sn"] = t.OrderSn
-	}
-
-	return maps
-}
-
-// Add 添加订单
-func (o *Order) Add() error {
-	modelOrder := models.Order{
+// toModelOrder 转换为 models.Order（用于 DB 操作）
+func toModelOrder(o *Order) *models.Order {
+	model := &models.Order{
+		Id:              o.Id,
 		OrderSn:         o.OrderSn,
 		UserId:          o.UserID,
 		ProductId:       int(o.ProductID),
@@ -107,13 +125,48 @@ func (o *Order) Add() error {
 		DiscountAmount:  o.DiscountAmount,
 		PayAmount:       o.PayAmount,
 		OrderStatus:     int(o.OrderStatus),
-		PaymentMethod:   0, // 注意处理空指针 o.PaymentMethod
 		ShippingAddress: o.ShippingAddress,
 	}
-
 	if o.PaymentMethod != nil {
-		modelOrder.PaymentMethod = int(*o.PaymentMethod)
+		model.PaymentMethod = int(*o.PaymentMethod)
 	}
+	return model
+}
 
-	return models.AddOrder(&modelOrder)
+// Add 创建订单
+func (o *Order) Add() error {
+	return models.AddOrder(toModelOrder(o))
+}
+
+// Edit 修改订单
+func (o *Order) Edit() error {
+	return models.EditOrder(toModelOrder(o))
+}
+
+// GetOne 获取单个订单
+func GetOne(id int) (models.Order, error) {
+	return models.GetOrderById(id)
+}
+
+// GetAll 获取订单列表
+func (q *OrderQuery) GetAll() ([]models.Order, error) {
+	return models.GetOrdersWithProducts(q.PageNum, q.PageSize, q.toMap())
+}
+
+// Count 获取订单总数
+func (q *OrderQuery) Count() (int, error) {
+	return models.GetOrderTotal(q.toMap())
+}
+
+// 查询条件 map 构造器
+func (q *OrderQuery) toMap() map[string]interface{} {
+	maps := make(map[string]interface{})
+	if q.OrderSn != "" {
+		maps["order_sn"] = q.OrderSn
+	}
+	return maps
+}
+
+func (d *OrderDelete) Delete() error {
+	return models.DeleteOrder(d.OrderSn)
 }

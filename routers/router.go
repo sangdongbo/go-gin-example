@@ -37,8 +37,10 @@ func InitRouter() *gin.Engine {
 		// tag 分组
 		orders := apiv1.Group("/orders")
 		{
-			orders.GET("", v1.GetOrders)         // 获取订单列表
-			orders.POST("addOrder", v1.AddOrder) //添加订单
+			orders.GET("", v1.GetOrders)            // 获取订单列表
+			orders.POST("addOrder", v1.AddOrder)    //添加订单
+			orders.PUT("editOrder", v1.UpdateOrder) //修改订单
+			orders.DELETE("deleteOrder/:order_sn", v1.DeleteOrder)
 		}
 
 		//获取标签列表
