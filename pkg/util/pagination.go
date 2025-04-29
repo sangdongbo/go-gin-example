@@ -1,8 +1,8 @@
 package util
 
 import (
-	"github.com/unknwon/com"
 	"github.com/gin-gonic/gin"
+	"github.com/unknwon/com"
 
 	"github.com/EDDYCJY/go-gin-example/pkg/setting"
 )

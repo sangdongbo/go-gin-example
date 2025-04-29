@@ -34,6 +34,13 @@ func InitRouter() *gin.Engine {
 	apiv1 := r.Group("/api/v1")
 	apiv1.Use(jwt.JWT())
 	{
+		// tag 分组
+		orders := apiv1.Group("/orders")
+		{
+			orders.GET("", v1.GetOrders)         // 获取订单列表
+			orders.POST("addOrder", v1.AddOrder) //添加订单
+		}
+
 		//获取标签列表
 		apiv1.GET("/tags", v1.GetTags)
 		//新建标签

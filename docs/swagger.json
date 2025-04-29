@@ -274,6 +274,42 @@
                 }
             }
         },
+        "/api/v1/orders": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get multiple article tags",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "OrderSn",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "UserId",
+                        "name": "state",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/tags": {
             "get": {
                 "produces": [
@@ -402,16 +438,7 @@
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Import Image",
-                "parameters": [
-                    {
-                        "type": "file",
-                        "description": "Image File",
-                        "name": "image",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
+                "summary": "Import article tag",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -560,9 +587,7 @@
                 "code": {
                     "type": "integer"
                 },
-                "data": {
-                    "type": "object"
-                },
+                "data": {},
                 "msg": {
                     "type": "string"
                 }

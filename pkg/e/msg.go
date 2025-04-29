@@ -9,6 +9,7 @@ var MsgFlags = map[int]string{
 	ERROR_NOT_EXIST_TAG:             "该标签不存在",
 	ERROR_GET_TAGS_FAIL:             "获取所有标签失败",
 	ERROR_COUNT_TAG_FAIL:            "统计标签失败",
+	ERROR_COUNT_ORDER_FAIL:          "统计订单失败",
 	ERROR_ADD_TAG_FAIL:              "新增标签失败",
 	ERROR_EDIT_TAG_FAIL:             "修改标签失败",
 	ERROR_DELETE_TAG_FAIL:           "删除标签失败",

@@ -1,12 +1,22 @@
 package app
 
 import (
+	"fmt"
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
 	"net/http"
 
 	"github.com/EDDYCJY/go-gin-example/pkg/e"
 )
+
+func BindJsonAndValid(c *gin.Context, form interface{}) (int, int) {
+	err := c.ShouldBindJSON(form)
+	if err != nil {
+		fmt.Println("参数绑定错误：", err.Error())
+		return http.StatusBadRequest, e.INVALID_PARAMS
+	}
+	return http.StatusOK, e.SUCCESS
+}
 
 // BindAndValid binds and validates data
 func BindAndValid(c *gin.Context, form interface{}) (int, int) {

@@ -3,9 +3,9 @@ package v1
 import (
 	"net/http"
 
-	"github.com/unknwon/com"
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
+	"github.com/unknwon/com"
 
 	"github.com/EDDYCJY/go-gin-example/pkg/app"
 	"github.com/EDDYCJY/go-gin-example/pkg/e"
@@ -56,9 +56,9 @@ func GetTags(c *gin.Context) {
 }
 
 type AddTagForm struct {
-	Name      string `form:"name" valid:"Required;MaxSize(100)"`
-	CreatedBy string `form:"created_by" valid:"Required;MaxSize(100)"`
-	State     int    `form:"state" valid:"Range(0,1)"`
+	Name      string `json:"name" valid:"Required;MaxSize(100)"`
+	CreatedBy string `json:"created_by" valid:"Required;MaxSize(100)"`
+	State     int    `json:"state" valid:"Range(0,1)"`
 }
 
 // @Summary Add article tag
@@ -231,7 +231,6 @@ func ExportTag(c *gin.Context) {
 
 // @Summary Import article tag
 // @Produce  json
-// @Param file body file true "Excel File"
 // @Success 200 {object} app.Response
 // @Failure 500 {object} app.Response
 // @Router /api/v1/tags/import [post]
