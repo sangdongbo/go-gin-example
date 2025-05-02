@@ -12,6 +12,7 @@ import (
 )
 
 var db *gorm.DB
+var Db *gorm.DB
 
 type Model struct {
 	ID         int `gorm:"primary_key" json:"id"`
@@ -43,6 +44,8 @@ func Setup() {
 	db.Callback().Delete().Replace("gorm:delete", deleteCallback)
 	db.DB().SetMaxIdleConns(10)
 	db.DB().SetMaxOpenConns(100)
+
+	Db = db
 }
 
 // CloseDB closes database connection (unnecessary)

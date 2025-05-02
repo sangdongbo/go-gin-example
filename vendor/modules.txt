@@ -4,12 +4,6 @@ github.com/360EntSecGroup-Skylar/excelize
 # github.com/KyleBanks/depth v1.2.1
 ## explicit
 github.com/KyleBanks/depth
-# github.com/PuerkitoBio/purell v1.2.1
-## explicit; go 1.21
-# github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
-## explicit
-# github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
-## explicit
 # github.com/astaxie/beego v1.9.3-0.20171218111859-f16688817aa4
 ## explicit
 github.com/astaxie/beego/validation
@@ -18,8 +12,6 @@ github.com/astaxie/beego/validation
 github.com/boombuler/barcode
 github.com/boombuler/barcode/qr
 github.com/boombuler/barcode/utils
-# github.com/cpuguy83/go-md2man/v2 v2.0.7
-## explicit; go 1.12
 # github.com/denisenkom/go-mssqldb v0.0.0-20190920000552-128d9f4ae1cd
 ## explicit; go 1.11
 # github.com/dgrijalva/jwt-go v3.1.0+incompatible
@@ -102,12 +94,9 @@ github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 # github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 ## explicit
-# github.com/pkg/errors v0.8.1
-## explicit
-# github.com/russross/blackfriday/v2 v2.1.0
-## explicit
-# github.com/shurcooL/sanitized_anchor_name v1.0.0
-## explicit
+# github.com/rabbitmq/amqp091-go v1.10.0
+## explicit; go 1.20
+github.com/rabbitmq/amqp091-go
 # github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337
 ## explicit
 # github.com/swaggo/gin-swagger v1.2.0
@@ -126,10 +115,6 @@ github.com/ugorji/go/codec
 # github.com/unknwon/com v1.0.1
 ## explicit
 github.com/unknwon/com
-# github.com/urfave/cli/v2 v2.27.6
-## explicit; go 1.18
-# github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1
-## explicit; go 1.15
 # golang.org/x/image v0.0.0-20180628062038-cc896f830ced
 ## explicit
 golang.org/x/image/font
@@ -142,8 +127,6 @@ golang.org/x/net/webdav/internal/xml
 # golang.org/x/sys v0.32.0
 ## explicit; go 1.23.0
 golang.org/x/sys/unix
-# golang.org/x/text v0.24.0
-## explicit; go 1.23.0
 # golang.org/x/tools v0.32.0
 ## explicit; go 1.23.0
 golang.org/x/tools/go/ast/astutil
@@ -164,5 +147,3 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# sigs.k8s.io/yaml v1.4.0
-## explicit; go 1.12

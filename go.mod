@@ -14,6 +14,7 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/gomodule/redigo v2.0.1-0.20180401191855-9352ab68be13+incompatible
 	github.com/jinzhu/gorm v0.0.0-20180213101209-6e1387b44c64
+	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.16.4
 	github.com/tealeg/xlsx v1.0.4-0.20180419195153-f36fa3be8893

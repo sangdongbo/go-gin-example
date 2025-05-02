@@ -35,6 +35,13 @@ func InitRouter() *gin.Engine {
 	apiv1.Use(jwt.JWT())
 	{
 		// tag 分组
+		amqp := apiv1.Group("/amqp")
+		{
+			amqp.POST("addMqUser", v1.AddMqUsers) //添加MQ用户
+			amqp.GET("consume", v1.ConsumeMessage)
+		}
+
+		// tag 分组
 		orders := apiv1.Group("/orders")
 		{
 			orders.GET("", v1.GetOrders)            // 获取订单列表

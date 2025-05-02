@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/EDDYCJY/go-gin-example/pkg/rabbitmq"
 	"log"
 	"net/http"
 
@@ -11,8 +12,8 @@ import (
 	"github.com/EDDYCJY/go-gin-example/pkg/gredis"
 	"github.com/EDDYCJY/go-gin-example/pkg/logging"
 	"github.com/EDDYCJY/go-gin-example/pkg/setting"
-	"github.com/EDDYCJY/go-gin-example/routers"
 	"github.com/EDDYCJY/go-gin-example/pkg/util"
+	"github.com/EDDYCJY/go-gin-example/routers"
 )
 
 func init() {
@@ -20,6 +21,7 @@ func init() {
 	models.Setup()
 	logging.Setup()
 	gredis.Setup()
+	rabbitmq.Setup()
 	util.Setup()
 }
 
