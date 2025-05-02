@@ -178,35 +178,35 @@ func PublishMessage(exchangeName, exchangeType, queueName, routingKey, message s
 	return nil
 }
 
+func ConsumeMessageWithAck(exchangeName, exchangeType, queueName, routingKey string) (<-chan amqp091.Delivery, error) {
+	return ConsumeMessage(exchangeName, exchangeType, queueName, routingKey, false)
+}
+
 // ConsumeMessage 是高级封装：自动声明交换机、队列、绑定并注册消费者
-// ConsumeMessage 是高级封装：自动声明交换机、队列、绑定并注册消费者
-func ConsumeMessage(exchangeName, exchangeType, queueName, routingKey string) (<-chan amqp091.Delivery, error) {
-	// 处理 fanout 类型不需要 routingKey
+func ConsumeMessage(exchangeName, exchangeType, queueName, routingKey string, autoAck bool) (<-chan amqp091.Delivery, error) {
+	// fanout 模式不使用 routingKey
 	if exchangeType == "fanout" {
 		routingKey = ""
 	}
 
-	// 声明交换机
 	if err := DeclareExchange(exchangeName, exchangeType); err != nil {
 		return nil, fmt.Errorf("failed to declare exchange: %w", err)
 	}
 
-	// 声明队列
 	if err := DeclareQueue(queueName); err != nil {
 		return nil, fmt.Errorf("failed to declare queue: %w", err)
 	}
 
-	// 绑定队列到交换机（routingKey 可为空）
 	if err := BindQueueToExchange(queueName, exchangeName, routingKey); err != nil {
 		return nil, fmt.Errorf("failed to bind queue: %w", err)
 	}
 
-	// 注册消费者
+	// 注册消费者，autoAck 由参数控制
 	msgs, err := RabbitMQChannel.Consume(
 		queueName,
 		"",
-		true,  // 自动确认
-		false, // 非排他
+		autoAck, // 这里使用传入参数
+		false,
 		false,
 		false,
 		nil,
@@ -215,6 +215,6 @@ func ConsumeMessage(exchangeName, exchangeType, queueName, routingKey string) (<
 		return nil, fmt.Errorf("failed to register consumer: %w", err)
 	}
 
-	log.Printf("Consuming from [%s] on exchange [%s] with routing key [%s]", queueName, exchangeName, routingKey)
+	log.Printf("Consuming from [%s] on exchange [%s] with routing key [%s], autoAck=%v", queueName, exchangeName, routingKey, autoAck)
 	return msgs, nil
 }

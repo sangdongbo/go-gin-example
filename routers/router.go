@@ -39,6 +39,7 @@ func InitRouter() *gin.Engine {
 		{
 			amqp.POST("addMqUser", v1.AddMqUsers) //添加MQ用户
 			amqp.GET("consume", v1.ConsumeMessage)
+			amqp.GET("consumeAck", v1.ConsumeAckMessage)
 		}
 
 		// tag 分组

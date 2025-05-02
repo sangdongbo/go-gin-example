@@ -48,7 +48,13 @@ func AddMqUsers(c *gin.Context) {
 
 func ConsumeMessage(c *gin.Context) {
 	appG := app.Gin{C: c}
-	msgs, err := rabbitmq.ConsumeMessage("user_register", "direct", "user_register_q", "user.register")
+	msgs, err := rabbitmq.ConsumeMessage(
+		"user_register",
+		"direct",
+		"user_register_q",
+		"user.register",
+		true,
+	)
 	if err != nil {
 		log.Printf("消费消息失败: %v", err)
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -61,4 +67,36 @@ func ConsumeMessage(c *gin.Context) {
 	default:
 		c.JSON(200, gin.H{"message": "暂无消息"})
 	}
+}
+
+func ConsumeAckMessage(c *gin.Context) {
+	appG := app.Gin{C: c}
+	msgs, err := rabbitmq.ConsumeMessageWithAck(
+		"user_register",
+		"direct",
+		"user_register_q",
+		"user.register",
+	)
+	if err != nil {
+		appG.Response(500, 500, "注册消费者失败")
+	}
+
+	go func() {
+		for msg := range msgs {
+			log.Printf("收到消息: %s", msg.Body)
+			// 处理业务逻辑
+			if len(msg.Body) > 0 {
+				// 处理成功，手动 ACK
+				if err := msg.Ack(false); err != nil {
+					log.Printf("ACK失败: %v", err)
+				}
+			} else {
+				// 处理失败，拒绝消息，不重回队列
+				if err := msg.Nack(false, false); err != nil {
+					log.Printf("NACK失败: %v", err)
+				}
+			}
+		}
+	}()
+
 }
