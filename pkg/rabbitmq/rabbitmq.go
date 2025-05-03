@@ -9,37 +9,29 @@ import (
 )
 
 var RabbitMQConn *amqp091.Connection
-var RabbitMQChannel *amqp091.Channel
 
-// Setup 初始化 RabbitMQ 连接和通道
+// Setup 初始化 RabbitMQ 连接
 func Setup() error {
-	// 连接 RabbitMQ
 	conn, err := amqp091.Dial(setting.RabbitMQSetting.Host)
 	if err != nil {
 		return fmt.Errorf("failed to connect to RabbitMQ: %w", err)
 	}
 	RabbitMQConn = conn
-
-	// 创建通道
-	channel, err := conn.Channel()
-	if err != nil {
-		return fmt.Errorf("failed to open a channel: %w", err)
-	}
-	RabbitMQChannel = channel
-
-	log.Println("RabbitMQ channel created successfully!")
+	log.Println("RabbitMQ connection established.")
 	return nil
 }
 
-// DeclareQueue 声明队列（支持多个队列动态注册）
-func DeclareQueue(queueName string) error {
-	_, err := RabbitMQChannel.QueueDeclare(
-		queueName, // 队列名
-		false,     // durable
-		false,     // auto-delete
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
+// DeclareQueue 声明队列
+func DeclareQueue(queueName string, durable bool, otherArgs amqp091.Table) error {
+	ch, err := RabbitMQConn.Channel()
+	if err != nil {
+		return err
+	}
+	defer ch.Close()
+
+	_, err = ch.QueueDeclare(
+		queueName, durable,
+		false, false, false, otherArgs,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to declare queue: %w", err)
@@ -50,171 +42,129 @@ func DeclareQueue(queueName string) error {
 
 // DeclareExchange 声明交换机
 func DeclareExchange(exchangeName, exchangeType string) error {
-	err := RabbitMQChannel.ExchangeDeclare(
-		exchangeName, // 交换机名
-		exchangeType, // 交换机类型 (direct, fanout, topic)
-		true,         // durable
-		false,        // auto-delete
-		false,        // internal
-		false,        // no-wait
-		nil,          // arguments
+	ch, err := RabbitMQConn.Channel()
+	if err != nil {
+		return err
+	}
+	defer ch.Close()
+
+	err = ch.ExchangeDeclare(
+		exchangeName, exchangeType,
+		true, false, false, false, nil,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to declare exchange: %w", err)
 	}
-	log.Printf("Exchange declared: %s with type: %s", exchangeName, exchangeType)
+	log.Printf("Exchange declared: %s (%s)", exchangeName, exchangeType)
 	return nil
 }
 
-// BindQueueToExchange 将队列绑定到交换机
+// BindQueueToExchange 绑定队列到交换机
 func BindQueueToExchange(queueName, exchangeName, routingKey string) error {
-	err := RabbitMQChannel.QueueBind(
-		queueName,    // 队列名
-		routingKey,   // 路由键
-		exchangeName, // 交换机名
-		false,        // no-wait
-		nil,          // arguments
-	)
+	ch, err := RabbitMQConn.Channel()
+	if err != nil {
+		return err
+	}
+	defer ch.Close()
+
+	err = ch.QueueBind(queueName, routingKey, exchangeName, false, nil)
 	if err != nil {
 		return fmt.Errorf("failed to bind queue to exchange: %w", err)
 	}
-	log.Printf("Queue %s bound to exchange %s with routing key %s", queueName, exchangeName, routingKey)
+	log.Printf("Bound queue [%s] to exchange [%s] with routing key [%s]", queueName, exchangeName, routingKey)
 	return nil
 }
 
-// Publish 使用指定交换机发布消息
+// Publish 发布消息
 func Publish(exchangeName, exchangeType, routingKey, message string) error {
-	// 声明交换机
-	if err := DeclareExchange(exchangeName, exchangeType); err != nil {
-		return fmt.Errorf("failed to declare exchange before publishing: %w", err)
+	ch, err := RabbitMQConn.Channel()
+	if err != nil {
+		return err
+	}
+	defer ch.Close()
+
+	if err := ch.ExchangeDeclare(exchangeName, exchangeType, true, false, false, false, nil); err != nil {
+		return fmt.Errorf("declare exchange: %w", err)
 	}
 
-	err := RabbitMQChannel.Publish(
-		exchangeName, // 交换机名
-		routingKey,   // 路由键
-		false,        // mandatory
-		false,        // immediate
+	err = ch.Publish(
+		exchangeName, routingKey,
+		false, false,
 		amqp091.Publishing{
 			ContentType: "text/plain",
 			Body:        []byte(message),
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("failed to publish a message: %w", err)
+		return fmt.Errorf("failed to publish: %w", err)
 	}
-	log.Printf("Message sent to exchange [%s] with routing key [%s]: %s", exchangeName, routingKey, message)
+	log.Printf("Published to exchange [%s] routingKey [%s]: %s", exchangeName, routingKey, message)
 	return nil
 }
 
-// Consume 消费消息
-func Consume(exchangeName, exchangeType, queueName, routingKey string) (<-chan amqp091.Delivery, error) {
-	// 声明交换机
-	if err := DeclareExchange(exchangeName, exchangeType); err != nil {
-		return nil, fmt.Errorf("failed to declare exchange before consuming: %w", err)
-	}
-
-	// 声明队列
-	if err := DeclareQueue(queueName); err != nil {
-		return nil, fmt.Errorf("failed to declare queue before consuming: %w", err)
-	}
-
-	// 绑定队列到交换机
-	if err := BindQueueToExchange(queueName, exchangeName, routingKey); err != nil {
-		return nil, fmt.Errorf("failed to bind queue to exchange: %w", err)
-	}
-
-	// 注册消费者
-	msgs, err := RabbitMQChannel.Consume(
-		queueName, // 队列名
-		"",        // consumer tag
-		true,      // auto-ack
-		false,     // exclusive
-		false,     // no-local
-		false,     // no-wait
-		nil,       // arguments
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to register a consumer: %w", err)
-	}
-
-	log.Printf("Consuming messages from queue %s on exchange %s with routing key %s", queueName, exchangeName, routingKey)
-	return msgs, nil
-}
-
-// Close 关闭连接和通道
-func Close() {
-	if RabbitMQChannel != nil {
-		_ = RabbitMQChannel.Close()
-	}
-	if RabbitMQConn != nil {
-		_ = RabbitMQConn.Close()
-	}
-}
-
-// PublishMessage 是统一的高级封装：自动声明交换机、队列、绑定并发布消息
+// PublishMessage 高级封装：声明+绑定+发布
 func PublishMessage(exchangeName, exchangeType, queueName, routingKey, message string) error {
-	// 声明交换机
 	if err := DeclareExchange(exchangeName, exchangeType); err != nil {
-		return fmt.Errorf("failed to declare exchange: %w", err)
+		return err
 	}
 
-	// 声明队列（如果有传）
 	if queueName != "" {
-		if err := DeclareQueue(queueName); err != nil {
-			return fmt.Errorf("failed to declare queue: %w", err)
+		if err := DeclareQueue(queueName, true, nil); err != nil {
+			return err
 		}
-
-		// 绑定队列（只有非 fanout 类型才需要 routingKey）
 		if err := BindQueueToExchange(queueName, exchangeName, routingKey); err != nil {
-			return fmt.Errorf("failed to bind queue: %w", err)
+			return err
 		}
 	}
 
-	// 发布消息
-	if err := Publish(exchangeName, exchangeType, routingKey, message); err != nil {
-		return fmt.Errorf("failed to publish message: %w", err)
+	return Publish(exchangeName, exchangeType, routingKey, message)
+}
+
+// ConsumeMessage 消费者注册（自动声明交换机/队列/绑定）
+func ConsumeMessage(exchangeName, exchangeType, queueName, routingKey string, autoAck bool) (<-chan amqp091.Delivery, *amqp091.Channel, error) {
+	ch, err := RabbitMQConn.Channel()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return nil
-}
-
-func ConsumeMessageWithAck(exchangeName, exchangeType, queueName, routingKey string) (<-chan amqp091.Delivery, error) {
-	return ConsumeMessage(exchangeName, exchangeType, queueName, routingKey, false)
-}
-
-// ConsumeMessage 是高级封装：自动声明交换机、队列、绑定并注册消费者
-func ConsumeMessage(exchangeName, exchangeType, queueName, routingKey string, autoAck bool) (<-chan amqp091.Delivery, error) {
-	// fanout 模式不使用 routingKey
 	if exchangeType == "fanout" {
 		routingKey = ""
 	}
 
-	if err := DeclareExchange(exchangeName, exchangeType); err != nil {
-		return nil, fmt.Errorf("failed to declare exchange: %w", err)
+	if err := ch.ExchangeDeclare(exchangeName, exchangeType, true, false, false, false, nil); err != nil {
+		ch.Close()
+		return nil, nil, fmt.Errorf("declare exchange: %w", err)
 	}
 
-	if err := DeclareQueue(queueName); err != nil {
-		return nil, fmt.Errorf("failed to declare queue: %w", err)
+	if _, err := ch.QueueDeclare(queueName, true, false, false, false, nil); err != nil {
+		ch.Close()
+		return nil, nil, fmt.Errorf("declare queue: %w", err)
 	}
 
-	if err := BindQueueToExchange(queueName, exchangeName, routingKey); err != nil {
-		return nil, fmt.Errorf("failed to bind queue: %w", err)
+	if err := ch.QueueBind(queueName, routingKey, exchangeName, false, nil); err != nil {
+		ch.Close()
+		return nil, nil, fmt.Errorf("bind queue: %w", err)
 	}
 
-	// 注册消费者，autoAck 由参数控制
-	msgs, err := RabbitMQChannel.Consume(
-		queueName,
-		"",
-		autoAck, // 这里使用传入参数
-		false,
-		false,
-		false,
-		nil,
+	msgs, err := ch.Consume(
+		queueName, "", autoAck, false, false, false, nil,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to register consumer: %w", err)
+		ch.Close()
+		return nil, nil, fmt.Errorf("consume: %w", err)
 	}
 
-	log.Printf("Consuming from [%s] on exchange [%s] with routing key [%s], autoAck=%v", queueName, exchangeName, routingKey, autoAck)
-	return msgs, nil
+	log.Printf("Consuming from queue [%s] (exchange: %s, routingKey: %s)", queueName, exchangeName, routingKey)
+	return msgs, ch, nil // 返回 channel 供调用者控制生命周期
+}
+
+func ConsumeMessageWithAck(exchangeName, exchangeType, queueName, routingKey string) (<-chan amqp091.Delivery, *amqp091.Channel, error) {
+	return ConsumeMessage(exchangeName, exchangeType, queueName, routingKey, false)
+}
+
+// Close 关闭连接
+func Close() {
+	if RabbitMQConn != nil {
+		_ = RabbitMQConn.Close()
+	}
 }
