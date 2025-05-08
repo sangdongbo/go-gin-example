@@ -16,6 +16,6 @@ func (MQUser) TableName() string {
 
 // AddOrder 添加订单
 func AddUser(user *MQUser) (int, error) {
-	error := models.Db.Create(user).Error
-	return user.ID, error
+	err := models.Db.Create(user).Error
+	return user.ID, err
 }

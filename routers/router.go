@@ -34,7 +34,7 @@ func InitRouter() *gin.Engine {
 	apiv1 := r.Group("/api/v1")
 	apiv1.Use(jwt.JWT())
 	{
-		// tag 分组
+		// 添加用户
 		amqp := apiv1.Group("/amqp")
 		{
 			amqp.POST("addMqUser", v1.AddMqUsers) //添加MQ用户
@@ -43,6 +43,21 @@ func InitRouter() *gin.Engine {
 			amqp.GET("sendDeadlineMessage", v1.SendDeadlineMessage)
 			amqp.GET("consumeDeadlineMessageOne", v1.ConsumeDeadlineMessageOne)
 			amqp.GET("consumeDeadlineMessageTwo", v1.ConsumeDeadlineMessageTwo)
+
+			amqp.POST("addEmail", v1.AddEmails)
+			amqp.PUT("updateEmail", v1.UpdateEmail)
+			amqp.GET("getEmails", v1.GetEmails)
+		}
+
+		es := apiv1.Group("/es")
+		{
+			es.POST("addEsData", v1.AddEsData) //添加ES 测试数据
+			es.GET("getEsData", v1.GetEsData)
+
+			es.POST("addEsJsonData", v1.AddEsJsonData)
+			es.GET("searchProductByKeyword", v1.SearchProductByKeyword)
+			es.GET("searchByBrandOrigin", v1.SearchByBrandOrigin)
+			es.GET("filterProductByPrice", v1.FilterProductByPrice)
 		}
 
 		// tag 分组

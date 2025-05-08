@@ -66,6 +66,16 @@ type RabbitMQ struct {
 
 var RabbitMQSetting = &RabbitMQ{}
 
+type ElasticSearch struct {
+	Hosts    string
+	UseAuth  bool
+	Username string
+	Password string
+	Timeout  string
+}
+
+var ElasticSearchSetting = &ElasticSearch{}
+
 var cfg *ini.File
 
 // Setup initialize the configuration instance
@@ -81,6 +91,7 @@ func Setup() {
 	mapTo("database", DatabaseSetting)
 	mapTo("redis", RedisSetting)
 	mapTo("rabbitmq", RabbitMQSetting)
+	mapTo("elasticsearch", ElasticSearchSetting)
 
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
 	ServerSetting.ReadTimeout = ServerSetting.ReadTimeout * time.Second

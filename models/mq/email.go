@@ -1,6 +1,11 @@
 package mq
 
-import "time"
+import (
+	"errors"
+	"github.com/EDDYCJY/go-gin-example/models"
+	"github.com/jinzhu/gorm"
+	"time"
+)
 
 type MQEmail struct {
 	ID        int        `gorm:"primaryKey" json:"id"`
@@ -14,4 +19,29 @@ type MQEmail struct {
 
 func (MQEmail) TableName() string {
 	return "blog_mq_emails"
+}
+
+// AddOrder 添加订单
+func AddEmail(email *MQEmail) (int, error) {
+	email.CreatedAt = time.Now()
+	err := models.Db.Create(email).Error
+	return email.ID, err
+}
+
+func EditEmail(email *MQEmail) error {
+	email.CreatedAt = time.Now()
+	err := models.Db.Save(email).Error
+	return err
+}
+
+func GetEmailById(id int) (*MQEmail, error) {
+	var email MQEmail
+	err := models.Db.Where("id = ?", id).First(&email).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil // 查不到返回 nil, nil，便于上层判断
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &email, nil
 }

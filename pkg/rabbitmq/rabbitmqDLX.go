@@ -75,37 +75,76 @@ func BuildBusinessQueueArgs(config DLXConfig) amqp091.Table {
 // 3. Setup 封装（每次用新 channel）
 // =====================
 
+// SetupDLX 初始化业务队列及其死信队列（DLX）结构，包括交换机、队列和绑定关系
 func SetupDLX(config DLXConfig) error {
+	// 创建一个新的 channel，每次使用都临时打开，保证并发安全
 	ch, err := RabbitMQConn.Channel()
 	if err != nil {
 		return fmt.Errorf("failed to create channel: %w", err)
 	}
-	defer SafeClose(ch)
+	defer SafeClose(ch) // 使用封装的安全关闭，防止 nil 或已关闭的 channel 造成 panic
 
+	// =============================
+	// 1. 声明死信交换机（DLX Exchange）
+	// =============================
 	if err := DeclareDLXExchange(ch, config.DLXExchange, "direct"); err != nil {
 		return fmt.Errorf("declare DLX exchange failed: %w", err)
 	}
+
+	// =============================
+	// 2. 声明死信队列（DLX Queue）
+	//    用于接收所有被拒绝、过期或无法路由的消息
+	// =============================
 	if err := DeclareDLXQueue(ch, config.DLXExchange+"_queue", nil); err != nil {
 		return fmt.Errorf("declare DLX queue failed: %w", err)
 	}
+
+	// =============================
+	// 3. 绑定死信队列到死信交换机
+	//    绑定 routingKey，用于匹配转入死信的消息
+	// =============================
 	if err := BindDLXQueueToExchange(ch, config.DLXExchange+"_queue", config.DLXExchange, config.DLXRoutingKey); err != nil {
 		return fmt.Errorf("bind DLX queue failed: %w", err)
 	}
 
+	// =============================
+	// 4. 声明业务交换机（Business Exchange）
+	//    用于正常业务流程的消息投递
+	// =============================
 	if err := DeclareDLXExchange(ch, config.BusinessExchange, config.BusinessExchangeType); err != nil {
 		return fmt.Errorf("declare business exchange failed: %w", err)
 	}
+
+	// =============================
+	// 5. 构建业务队列的参数
+	//    包括 TTL（延迟时间）和死信交换机配置
+	//	  这一步将普通队列和死信队列绑定
+	// =============================
 	bizArgs := BuildBusinessQueueArgs(config)
+
+	// =============================
+	// 6. 声明业务队列
+	//    消息将暂存在此队列中直到过期或被消费
+	// =============================
 	if err := DeclareDLXQueue(ch, config.BusinessQueue, bizArgs); err != nil {
 		return fmt.Errorf("declare business queue failed: %w", err)
 	}
+
+	// =============================
+	// 7. 绑定业务队列到业务交换机
+	//    routingKey 控制业务消息投递路径
+	// =============================
 	if err := BindDLXQueueToExchange(ch, config.BusinessQueue, config.BusinessExchange, config.BusinessRoutingKey); err != nil {
 		return fmt.Errorf("bind business queue failed: %w", err)
 	}
 
+	// =============================
+	// 8. 输出成功日志
+	// =============================
 	log.Printf("DLX setup success: Biz [%s → %s], DLX [%s → %s]",
 		config.BusinessExchange, config.BusinessQueue,
 		config.DLXExchange, config.DLXExchange+"_queue")
+
 	return nil
 }
 
