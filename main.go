@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/EDDYCJY/go-gin-example/pkg/rabbitmq"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/EDDYCJY/go-gin-example/models"
+	casbinPkg "github.com/EDDYCJY/go-gin-example/pkg/casbin"
 	"github.com/EDDYCJY/go-gin-example/pkg/es"
 	"github.com/EDDYCJY/go-gin-example/pkg/gredis"
 	"github.com/EDDYCJY/go-gin-example/pkg/logging"
+	"github.com/EDDYCJY/go-gin-example/pkg/rabbitmq"
 	"github.com/EDDYCJY/go-gin-example/pkg/setting"
 	"github.com/EDDYCJY/go-gin-example/pkg/util"
 	"github.com/EDDYCJY/go-gin-example/routers"
@@ -25,6 +26,11 @@ func init() {
 	rabbitmq.Setup()
 	es.Setup()
 	util.Setup()
+
+	// 初始化 Casbin
+	if err := casbinPkg.Setup(); err != nil {
+		log.Fatalf("Casbin setup failed: %v", err)
+	}
 }
 
 // @title Golang Gin API

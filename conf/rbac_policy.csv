@@ -1,0 +1,24 @@
+p, admin, /api/v1/*, GET
+p, admin, /api/v1/*, POST
+p, admin, /api/v1/*, PUT
+p, admin, /api/v1/*, DELETE
+p, editor, /api/v1/articles, GET
+p, editor, /api/v1/articles/*, GET
+p, editor, /api/v1/articles, POST
+p, editor, /api/v1/articles/*, PUT
+p, editor, /api/v1/tags, GET
+p, editor, /api/v1/tags/*, GET
+p, viewer, /api/v1/articles, GET
+p, viewer, /api/v1/articles/*, GET
+p, viewer, /api/v1/tags, GET
+p, viewer, /api/v1/stock/products, GET
+p, viewer, /api/v1/stock/product/*, GET
+p, stock_manager, /api/v1/stock/*, GET
+p, stock_manager, /api/v1/stock/*, POST
+p, stock_manager, /api/v1/stock/*, PUT
+p, stock_manager, /api/v1/stock/*, DELETE
+p, test, /__placeholder__, NONE
+g, user:1, admin
+g, user:2, editor
+g, user:3, viewer
+g, user:4, stock_manager

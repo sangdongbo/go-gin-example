@@ -41,6 +41,28 @@ func InitRouter() *gin.Engine {
 	apiv1 := r.Group("/api/v1")
 	apiv1.Use(jwt.JWT())
 	{
+		// Casbin 权限管理接口
+		casbin := apiv1.Group("/casbin")
+		{
+			// 角色管理
+			casbin.POST("/create-role", v1.CreateRole)           // 创建新角色
+			casbin.DELETE("/delete-role-by-name", v1.DeleteRole) // 删除角色
+
+			casbin.GET("/roles", v1.GetAllRoles)                      // 获取所有角色列表
+			casbin.GET("/role-permissions", v1.GetPermissionsForRole) // 获取角色的所有权限
+			casbin.GET("/role-users", v1.GetUsersForRole)             // 获取拥有某个角色的所有用户
+
+			// 用户角色管理
+			casbin.POST("/add-role", v1.AddRoleForUser)         // 为用户添加角色
+			casbin.DELETE("/delete-role", v1.DeleteRoleForUser) // 删除用户角色
+			casbin.GET("/user-roles", v1.GetRolesForUser)       // 获取用户的所有角色
+
+			// 权限策略管理
+			casbin.POST("/add-policy", v1.AddPolicy)            // 添加权限策略
+			casbin.DELETE("/delete-policy", v1.DeletePolicy)    // 删除权限策略
+			casbin.GET("/check-permission", v1.CheckPermission) // 检查权限
+		}
+
 		// 添加用户
 		amqp := apiv1.Group("/amqp")
 		{
