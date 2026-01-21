@@ -17,7 +17,19 @@ func JWT() gin.HandlerFunc {
 		var data interface{}
 
 		code = e.SUCCESS
-		token := c.Query("token")
+
+		// 优先从 Authorization Header 获取 token
+		token := c.GetHeader("Authorization")
+		if token != "" {
+			// 检查是否是 Bearer 格式
+			if len(token) > 7 && token[:7] == "Bearer " {
+				token = token[7:] // 去掉 "Bearer " 前缀
+			}
+		} else {
+			// 如果 Header 中没有，则从 query 参数获取（向后兼容）
+			token = c.Query("token")
+		}
+
 		if token == "" {
 			code = e.INVALID_PARAMS
 		} else {

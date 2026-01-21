@@ -32,6 +32,8 @@ var MsgFlags = map[int]string{
 	ERROR_UPLOAD_CHECK_IMAGE_FAIL:   "检查图片失败",
 	ERROR_EDIT_ORDER_FAIL:           "更新订单失败",
 	ERROR_UPLOAD_CHECK_IMAGE_FORMAT: "校验图片错误，图片格式或大小有问题",
+	ERROR_EXIST:                     "该记录已存在",
+	ERROR_NOT_EXIST:                 "该记录不存在",
 }
 
 // GetMsg get error information based on Code

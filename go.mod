@@ -20,6 +20,7 @@ require (
 	github.com/swaggo/swag v1.16.4
 	github.com/tealeg/xlsx v1.0.4-0.20180419195153-f36fa3be8893
 	github.com/unknwon/com v1.0.1
+	golang.org/x/time v0.11.0
 )
 
 require (

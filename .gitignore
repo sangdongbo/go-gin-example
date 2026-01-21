@@ -4,3 +4,7 @@
 runtime/*
 !runtime/qrcode/bg.jpg
 !runtime/fonts
+# Air 热重载相关文件
+tmp/
+build-errors.log
+.air.toml.bak

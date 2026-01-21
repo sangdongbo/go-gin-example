@@ -1,0 +1,44 @@
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  args_bin = []
+  bin = "./tmp/main"
+  cmd = "go build -ldflags='-s -w' -o ./tmp/main ."
+  delay = 300
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "runtime", "docs", ".git", ".idea", "node_modules"]
+  exclude_file = []
+  exclude_regex = ["_test.go$", ".*_test.go$", "\\.#.*$"]
+  exclude_unchanged = true
+  follow_symlink = false
+  full_bin = ""
+  include_dir = []
+  include_ext = ["go", "mod", "sum"]
+  include_file = []
+  kill_delay = "300ms"
+  log = "build-errors.log"
+  poll = false
+  poll_interval = 0
+  rerun = false
+  rerun_delay = 50
+  send_interrupt = true
+  stop_on_root = false
+
+[color]
+  app = "blue"
+  build = "yellow"
+  main = "magenta"
+  runner = "green"
+  watcher = "cyan"
+
+[log]
+  main_only = false
+  time = true
+
+[misc]
+  clean_on_exit = true
+
+[screen]
+  clear_on_rebuild = true
+  keep_scroll = false
