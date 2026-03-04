@@ -8,3 +8,5 @@ runtime/*
 tmp/
 build-errors.log
 .air.toml.bak
+./openspec
+./vendor

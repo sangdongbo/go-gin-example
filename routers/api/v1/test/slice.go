@@ -23,6 +23,13 @@ func TestSlice(c *gin.Context) {
 	scores[0] = 85
 	scores[1] = 90
 	scores[2] = 95
+	scores[3] = 111
+
+	testSlice1 := make([][]int, 3)
+	testSlice1[0] = []int{1, 2, 3}
+	testSlice1[1] = []int{4, 5, 6}
+	testSlice1[2] = []int{7, 8, 9}
+	fmt.Println("Test Slice 1:", testSlice1)
 
 	numbers1 := make([]int, 10, 20) // 长度为10，容量为20
 	scores1 := make([]int, 2, 4)
@@ -37,6 +44,10 @@ func TestSlice(c *gin.Context) {
 	// 方式4：从数组创建 slice
 	arr := [5]int{1, 2, 3, 4, 5}
 	arrSlice := arr[1:4] // [2, 3, 4]
+
+	testArr4 := [5]int{11, 22, 33, 44, 55}
+	arraySlice4 := testArr4[0:3]
+	fmt.Println(arraySlice4)
 
 	// 方式5：nil slice
 	var nilSlice []int // nil slice，长度和容量都是0
@@ -61,6 +72,13 @@ func TestSlice(c *gin.Context) {
 	// 追加另一个 slice
 	moreFruits := []string{"kiwi", "melon"}
 	fruits = append(fruits, moreFruits...)
+
+	testFruits := make([]string, 10, 20)
+	testFruits = append(testFruits, "apple")
+	testFruits = append(testFruits, "banana", "orange")
+	testMoreFruites := []string{"kiwi", "melon"}
+	testFruits = append(testFruits, testMoreFruites...)
+	fmt.Println(testFruits)
 
 	// 4. 切片操作
 	sliceDemo := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
@@ -186,6 +204,11 @@ func TestSlice(c *gin.Context) {
 	reverseDemo := []string{"a", "b", "c", "d", "e"}
 	for i, j := 0, len(reverseDemo)-1; i < j; i, j = i+1, j-1 {
 		reverseDemo[i], reverseDemo[j] = reverseDemo[j], reverseDemo[i]
+	}
+
+	reverseDemo1 := []int{1, 2, 3, 4, 5, 6, 7}
+	for i, j := 0, len(reverseDemo1)-1; i < j; i, j = i+1, j-1 {
+		reverseDemo1[i], reverseDemo1[j] = reverseDemo1[j], reverseDemo1[i]
 	}
 
 	fmt.Println("Slice 操作演示完成")

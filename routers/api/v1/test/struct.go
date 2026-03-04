@@ -17,6 +17,14 @@ type User struct {
 	IsActive bool
 }
 
+type TestUser struct {
+	Id       int
+	Name     string
+	Email    string
+	Age      int
+	IsActive bool
+}
+
 // 2. 带标签的 struct（用于 JSON 序列化）
 type Product struct {
 	ID          int     `json:"id"`
@@ -24,6 +32,11 @@ type Product struct {
 	Price       float64 `json:"price"`
 	Description string  `json:"description,omitempty"` // omitempty: 空值时不输出
 	CreatedAt   string  `json:"created_at"`
+}
+
+type TestProduct struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 // 3. 嵌套 struct
@@ -38,6 +51,17 @@ type Employee struct {
 	Name    string  `json:"name"`
 	Address Address `json:"address"` // 嵌套 struct
 	Salary  float64 `json:"salary"`
+}
+
+type TestAddress struct {
+	Street  string `json:"street"`
+	City    string `json:"city"`
+	Zipcode string `json:"zip_code"`
+}
+
+type TestEmployee struct {
+	Id          int         `json:"id"`
+	TestAddress TestAddress `json:"address"` // 嵌套 struct
 }
 
 // 4. 匿名字段（继承）
@@ -57,13 +81,25 @@ func (u User) GetInfo() string {
 	return fmt.Sprintf("%s (%d years old)", u.Name, u.Age)
 }
 
+func (u User) GetInfo1() string {
+	return u.Name
+}
+
 // 6. 方法 - 指针接收者（可以修改 struct）
 func (u *User) UpdateEmail(newEmail string) {
 	u.Email = newEmail
 }
 
+func (u *User) UpdateName(name string) {
+	u.Name = name
+}
+
 func (u *User) IncrementAge() {
 	u.Age++
+}
+
+func (u *User) IncrementAgeBy(years int) {
+	u.Age += years
 }
 
 // 7. 构造函数
@@ -75,6 +111,14 @@ func NewUser(id int, name, email string, age int) *User {
 		Age:      age,
 		IsActive: true,
 	}
+}
+
+func (u *User) Update(id int, name, email string, age int) {
+	u.ID = id
+	u.Name = name
+	u.Email = email
+	u.Age = age
+	u.IsActive = true
 }
 
 func NewProduct(id int, name string, price float64) *Product {
@@ -110,6 +154,9 @@ func TestStruct(c *gin.Context) {
 		IsActive: true,
 	}
 
+	testUser1 := User{ID: 1, Name: "Alia"}
+	fmt.Println(testUser1)
+
 	// 方式2：省略字段名（必须按顺序）
 	user2 := User{2, "Bob", "bob@example.com", 30, true}
 
@@ -124,6 +171,13 @@ func TestStruct(c *gin.Context) {
 	user4.ID = 4
 	user4.Name = "David"
 	user4.Email = "david@example.com"
+
+	user41 := new(User)
+	user41.ID = 4
+	user41.Name = "David"
+	user41.Email = "test@example.com"
+	user41.Age = 29
+	fmt.Println("Test User 41:", user41)
 
 	// 方式5：使用构造函数
 	user5 := NewUser(5, "Eve", "eve@example.com", 28)

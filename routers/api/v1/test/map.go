@@ -9,6 +9,11 @@ import (
 func TestMap(c *gin.Context) {
 	// 1. 创建 map 的几种方式
 	// 方式1：使用 make 创建空 map
+	mapString := make(map[string]string)
+	mapString["name"] = "Gopher"
+	mapString["age"] = "20"
+	fmt.Println(mapString)
+
 	userAges := make(map[string]int)
 	userAges["Alice"] = 25
 	userAges["Bob"] = 30
@@ -21,10 +26,26 @@ func TestMap(c *gin.Context) {
 		"orange": 3.2,
 	}
 
+	diretMapString := map[string]string{
+		"first":  "hello",
+		"second": "world",
+		"third":  "!",
+	}
+	fmt.Println(diretMapString)
+
 	// 7. 嵌套 map 的正确使用方法
 	// 方法1：逐步初始化
-	testMap1 := make(map[string]map[int]int)
+	testMapMap1 := make(map[string]map[int]int)
+	testMapMap1["groupA"] = make(map[int]int)
+	testMapMap1["groupA"][1] = 100
+	testMapMap1["groupA"][2] = 200
+	fmt.Println("初始化的嵌套 map:", testMapMap1)
 
+	for key, value := range testMapMap1 {
+		fmt.Println("Key:", key, "Value:", value)
+	}
+
+	testMap1 := make(map[string]map[int]int)
 	// 必须先初始化内层 map
 	testMap1["classOne"] = make(map[int]int)
 	testMap1["classOne"][1] = 10
@@ -47,6 +68,19 @@ func TestMap(c *gin.Context) {
 			2: 40,
 		},
 	}
+
+	testMapMap2 := map[string]map[int]int{
+		"groupB": {
+			1: 300,
+			2: 400,
+		},
+		"groupc": {
+			3: 500,
+			4: 600,
+		},
+	}
+
+	fmt.Println(testMapMap2)
 
 	// 方法3：安全的添加方法（
 	testMap3 := make(map[string]map[int]int)
@@ -86,6 +120,14 @@ func TestMap(c *gin.Context) {
 
 	fmt.Println(testColors)
 
+	testEmptyMap := map[int]int{}
+	testEmptyMap[1] = 100
+	testEmptyMap[2] = 200
+
+	for _, value := range testEmptyMap {
+		fmt.Println("Test Empty Map Value:", value)
+	}
+
 	// 2. 读取 map 值
 	aliceAge := userAges["Alice"]
 
@@ -107,6 +149,12 @@ func TestMap(c *gin.Context) {
 	delete(userAges, "Charlie")
 
 	// 5. 遍历 map
+	anyTypeMap := make(map[string]interface{})
+	anyTypeMap["name"] = "Gopher"
+	anyTypeMap["age"] = 20
+	anyTypeMap["is_student"] = true
+	fmt.Println("Any Type Map:", anyTypeMap)
+
 	var userList []map[string]interface{}
 	for name, age := range userAges {
 		userList = append(userList, map[string]interface{}{

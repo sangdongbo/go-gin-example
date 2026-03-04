@@ -14,8 +14,19 @@ func TestGoroutine(c *gin.Context) {
 	results = append(results, "=== 基本 Goroutine ===")
 
 	// 创建一个 channel 来收集结果
-	basicChan := make(chan string, 5)
+	basicChan111 := make(chan string, 10)
+	for i := 1; i < 5; i++ {
+		go func(i int) {
+			time.Sleep(time.Millisecond * 100)
+			basicChan111 <- "基本 Goroutine " + fmt.Sprint(i) + " 完成"
+		}(i)
+	}
 
+	for i := 1; i < 5; i++ {
+		fmt.Println(<-basicChan111)
+	}
+
+	basicChan := make(chan string, 5)
 	// 启动多个 goroutine
 	for i := 1; i <= 3; i++ {
 		go func(id int) {
@@ -51,6 +62,15 @@ func TestGoroutine(c *gin.Context) {
 
 	unbufferedMsg := <-unbufferedChan
 
+	unbufferedChan1 := make(chan int)
+
+	go func() {
+		unbufferedChan1 <- 42
+	}()
+
+	val := <-unbufferedChan1
+	fmt.Println("Received from unbuffered channel:", val)
+
 	// 3. 有缓冲 channel（异步）
 	bufferedChan := make(chan int, 3)
 	bufferedChan <- 1
@@ -75,6 +95,20 @@ func TestGoroutine(c *gin.Context) {
 	rangeResults := []int{}
 	for num := range numberChan {
 		rangeResults = append(rangeResults, num)
+	}
+
+	// 4.1 channel 关闭和 range 遍历 示例 2
+	numberChan1 := make(chan int, 4)
+	go func() {
+		for i := 1; i <= 4; i++ {
+			numberChan1 <- i * 10
+		}
+		close(numberChan1)
+	}()
+
+	rangeResults1 := []int{}
+	for num := range numberChan1 {
+		rangeResults1 = append(rangeResults1, num)
 	}
 
 	// 5. select 多路复用
@@ -125,6 +159,29 @@ func TestGoroutine(c *gin.Context) {
 	wgResultList := []string{}
 	for result := range wgResults {
 		wgResultList = append(wgResultList, result)
+	}
+
+	// 6.1 WaitGroup 示例 2
+	var wg1 sync.WaitGroup
+	wgResults1 := make(chan string, 3)
+
+	for i := 1; i <= 3; i++ {
+		wg1.Add(1)
+		go func(id int) {
+			defer wg1.Done()
+			time.Sleep(time.Millisecond * 50)
+			wgResults1 <- fmt.Sprintf("任务 %d 完成", id)
+		}(i)
+	}
+
+	go func() {
+		wg1.Wait()
+		close(wgResults1)
+	}()
+
+	wgResultList1 := []string{}
+	for result := range wgResults1 {
+		wgResultList1 = append(wgResultList1, result)
 	}
 
 	// 7. Worker Pool 模式
@@ -183,6 +240,23 @@ func TestGoroutine(c *gin.Context) {
 		}
 	}(dataChan)
 
+	// 8.1 单向 channel 示例 2
+	dataChan1 := make(chan int, 2)
+
+	go func(ch chan<- int) {
+		for i := 1; i <= 4; i++ {
+			ch <- i * 5
+		}
+		close(ch)
+	}(dataChan1)
+
+	readOnlyResults1 := []int{}
+	func(ch <-chan int) {
+		for val := range ch {
+			readOnlyResults1 = append(readOnlyResults1, val)
+		}
+	}(dataChan1)
+
 	// 9. 互斥锁 Mutex， 竞态条件
 	var mutex sync.Mutex
 	counter := 0
@@ -199,6 +273,22 @@ func TestGoroutine(c *gin.Context) {
 	}
 
 	counterWg.Wait()
+
+	// 9.1 互斥锁 示例 2
+	var mutex1 sync.Mutex
+	count1 := 0
+	var counterWg1 sync.WaitGroup
+
+	for i := 0; i < 1000; i++ {
+		counterWg1.Add(1)
+		go func() {
+			defer counterWg1.Done()
+			mutex1.Lock()
+			count1++
+			mutex1.Unlock()
+		}()
+	}
+	counterWg1.Wait()
 
 	// 10. 读写锁 RWMutex
 	var rwMutex sync.RWMutex

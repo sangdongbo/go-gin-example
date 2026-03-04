@@ -7,10 +7,36 @@ import (
 )
 
 func TestArray(c *gin.Context) {
-	var testArray1 [5]int
-	testArray1[0] = 1
-
+	testArray1 := [5]int{1, 2, 3}
 	fmt.Println(testArray1)
+
+	for i := 0; i < len(testArray1); i++ {
+		fmt.Println(testArray1[i])
+	}
+
+	for key, val := range testArray1 {
+		fmt.Println(key, val)
+	}
+
+	var testArray2 [5]int
+	testArray2[0] = 1
+
+	fmt.Println(testArray2)
+
+	type Map1 map[string]int
+	testArray3 := [2]Map1{{"one": 1, "two": 2}, {"three": 3, "four": 4}}
+	fmt.Println(testArray3)
+
+	for i, v := range testArray3 {
+		fmt.Println(i, v)
+		for key, val := range v {
+			fmt.Println(key, val)
+		}
+	}
+
+	type Array1 [3]int
+	testArray4 := [2]Array1{{1, 2, 3}, {4, 5, 6}}
+	fmt.Println(testArray4)
 
 	weekDays := [7]string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
 	numbers := [5]int{10, 20, 30, 40, 50}

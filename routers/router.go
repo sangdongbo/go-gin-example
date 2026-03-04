@@ -7,8 +7,9 @@ import (
 
 	_ "github.com/EDDYCJY/go-gin-example/docs"
 	"github.com/EDDYCJY/go-gin-example/middleware/jwt"
+	"github.com/gin-contrib/pprof"
+	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 
 	"github.com/EDDYCJY/go-gin-example/pkg/export"
 	"github.com/EDDYCJY/go-gin-example/pkg/qrcode"
@@ -24,6 +25,10 @@ func InitRouter() *gin.Engine {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
+	// 注册 pprof 性能分析路由
+	// 访问 http://localhost:8000/debug/pprof/ 查看
+	pprof.Register(r)
+
 	r.StaticFS("/export", http.Dir(export.GetExcelFullPath()))
 	r.StaticFS("/upload/images", http.Dir(upload.GetImageFullPath()))
 	r.StaticFS("/qrcode", http.Dir(qrcode.GetQrCodeFullPath()))
@@ -36,6 +41,29 @@ func InitRouter() *gin.Engine {
 	coroutine := r.Group("/api/v1/coroutine")
 	{
 		coroutine.POST("test", v1.TestCoroutine) // 测试协程处理
+	}
+
+	// 性能测试接口组（不需要登录，用于 pprof 分析）
+	perf := r.Group("/api/v1/perf")
+	{
+		// 1. CPU 性能问题：slice 未预分配
+		perf.GET("/cpu-slow", v1.TestCPUSlow)
+		perf.GET("/cpu-fast", v1.TestCPUFast)
+
+		// 2. 内存/GC 问题：interface{} 滥用
+		perf.GET("/gc-pressure", v1.TestGCPressure)
+		perf.GET("/gc-optimized", v1.TestGCOptimized)
+
+		// 3. 锁竞争问题
+		perf.GET("/mutex-slow", v1.TestMutexSlow)
+		perf.GET("/atomic-fast", v1.TestAtomicFast)
+
+		// 4. goroutine 泄漏
+		perf.GET("/goroutine-leak", v1.TestGoroutineLeak)
+		perf.GET("/goroutine-clean", v1.TestGoroutineClean)
+
+		// 5. 综合性能对比
+		perf.GET("/benchmark", v1.TestBenchmark)
 	}
 
 	apiv1 := r.Group("/api/v1")
@@ -108,6 +136,7 @@ func InitRouter() *gin.Engine {
 			test.GET("testSlice", v1Test.TestSlice)
 			test.GET("goroutine", v1Test.TestGoroutine)
 			test.GET("testStruct", v1Test.TestStruct)
+			test.GET("test", v1Test.Test)
 		}
 
 		// tag 分组

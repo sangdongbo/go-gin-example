@@ -4,8 +4,8 @@ tmp_dir = "tmp"
 
 [build]
   args_bin = []
-  bin = "./tmp/main"
-  cmd = "go build -ldflags='-s -w' -o ./tmp/main ."
+  bin = "./tmp/main.exe"
+  cmd = "go build -ldflags=\"-s -w\" -o ./tmp/main.exe ."
   delay = 300
   exclude_dir = ["assets", "tmp", "vendor", "testdata", "runtime", "docs", ".git", ".idea", "node_modules"]
   exclude_file = []
